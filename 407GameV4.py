@@ -5,7 +5,7 @@ import random
 class mapGen:
 
 	def __init__(self, max):
-		self.maps = ["map0", "map1", "map2", "map3", "map4", "map5", "map6", "map7", "map8", "map9", "map10", "map11", "map12", "map13", "map14", "map15", "map16", "map17", "map18", "map19", "map20"]
+		self.maps = ["maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png", "maptest.png"]
 		self.board = [[None,None,None,None,None,None,None,None,None,None,],
 			 	 	  [None,None,None,None,None,None,None,None,None,None,],
 			 	 	  [None,None,None,None,None,None,None,None,None,None,],
@@ -37,7 +37,7 @@ class mapGen:
 		START_ROW = row
 		START_COL = col
 		i = 0
-		self.board[row][col] = ["start", False, None, None, None, None] #make a board[][] = None or ["map", True, Door, Door, Door, Door] = [map, safe?, door?, door?, door?, door?]
+		self.board[row][col] = ["maptest.png", False, None, None, None, None] #make a board[][] = None or ["map", True, Door, Door, Door, Door] = [map, safe?, door?, door?, door?, door?]
 		while i <= self.max:
 			direction = random.randint(1, 4)
 			if direction == 1: #up
@@ -50,7 +50,7 @@ class mapGen:
 						i += 1
 					self.addDoorUp(row+1, col)
 					self.addDoorDown(row, col)
-			elif direction == 2:
+			elif direction == 2: #down
 				if(row + 1) <= 9:
 					row += 1
 					if self.board[row][col] == None:
@@ -60,7 +60,7 @@ class mapGen:
 						i += 1
 					self.addDoorDown(row-1, col)
 					self.addDoorUp(row, col)
-			elif direction == 3:
+			elif direction == 3: #left
 				if(col - 1) >= 0:
 					col -= 1
 					if self.board[row][col] == None:
@@ -70,7 +70,7 @@ class mapGen:
 						i += 1
 					self.addDoorLeft(row, col+1)
 					self.addDoorRight(row, col)
-			else:
+			else: #right
 				if(col + 1) <= 9:
 					col += 1
 					if self.board[row][col] == None:
@@ -78,8 +78,8 @@ class mapGen:
 						self.board[row][col] = [self.maps[mapi], True, None, None, None, None] #make a board[][] = None or ["map", True, Door, Door, Door, Door] = [map, safe?, door?, door?, door?, door?]
 						del self.maps[mapi]
 						i += 1
-					self.addDoorLeft(row, col-1)
-					self.addDoorRight(row, col)
+					self.addDoorLeft(row, col)
+					self.addDoorRight(row, col-1)
 		return START_ROW, START_COL
 
 	def printBoard(self):
@@ -103,8 +103,6 @@ class Object:
 		return pygame.Rect(self.x, self.y, self.width, self.height)
 
 
-	
-
 width, height = 900, 500
 WIN = pygame.display.set_mode((width, height))
 FPS = 60
@@ -112,8 +110,15 @@ Player_width, Player_height = 50, 40
 Vel = 5
 
 
-BACKGROUND_IMAGE = pygame.image.load(os.path.join('assets', 'maptest2.png')).convert_alpha()
-BACKGROUND = pygame.transform.scale(BACKGROUND_IMAGE, (width, height))
+def makeBackground(map, row, col):
+	mapName = map.getRoom(row, col)[0]
+	MAP_IMAGE = pygame.image.load(os.path.join('assets', mapName)).convert_alpha()
+	MAP = pygame.transform.scale(MAP_IMAGE, (width, height))
+	return MAP
+
+
+#BACKGROUND_IMAGE = pygame.image.load(os.path.join('assets', 'maptest.png')).convert_alpha()
+#BACKGROUND = pygame.transform.scale(BACKGROUND_IMAGE, (width, height))
 TOPDOOD_IMAGE = pygame.image.load(os.path.join('assets', 'TopDoor.png')).convert_alpha()
 TOPDOOR = pygame.transform.scale(TOPDOOD_IMAGE, (width, height))
 BOTTOMDOOR_IMAGE = pygame.image.load(os.path.join('assets', 'BottomDoor.png')).convert_alpha()
@@ -196,7 +201,6 @@ SPRINT_LEFT = [SPRINT1_LEFT, SPRINT1_LEFT,
 		  		SPRINT7_LEFT, SPRINT7_LEFT, 
 		  		SPRINT8_LEFT, SPRINT8_LEFT]
 
-
 #idle frames
 IDLE1_IMAGE = pygame.image.load(os.path.join('assets', 'idle1.png')).convert_alpha()
 IDLE1 = pygame.transform.scale(SPRINT1_IMAGE, (Player_width, Player_height))
@@ -228,17 +232,42 @@ IDLE = [IDLE1, IDLE1,
 
 
 
+
+
+
+
+#top right attack display
+
+item_width, item_height = 50, 50
+'''
+BOMB_IMAGE = pygame.image.load(os.path.join('assets', 'bomb.png')).convert_alpha()
+BOMB = pygame.transform.scale(BOMB_IMAGE, (item_width, item_height))
+SWORD_IMAGE = puygame.image.load(os.path.join('assets', 'sword.png')).convert_alpha()
+SWORD = pygame.transform.scale(SWORD_IMAGE, (item_width, item_height))
+'''
+
+def Draw_item(item, x, y):
+	WIN.blit(image, (x, y))
+
+
+
+
+
+
+
+
 #drawing
 def Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col): 
     fade = pygame.Surface((width, height))
     fade.fill(BLACK)
     for alpha in range(0, 255):
         fade.set_alpha(alpha)
-        Draw_window(CURRENT_PLAYER, Player, map, row, col)
+        BACKGROUND = makeBackground(map, row, col)
+        Draw_window(BACKGROUND, CURRENT_PLAYER, Player, map, row, col)
         WIN.blit(fade, (0,0))
         pygame.display.update()
 
-def Draw_window(CURRENT_PLAYER, Player_object, map, row, col):
+def Draw_window(BACKGROUND, CURRENT_PLAYER, Player_object, map, row, col):
 	WIN.blit(BACKGROUND, (0,0))
 	Draw_doors(map, row, col)
 	WIN.blit(CURRENT_PLAYER, (Player_object.x, Player_object.y))
@@ -310,6 +339,7 @@ def Door_collision(CURRENT_PLAYER, Player, map, row, col):
 			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
 			Player.x = 450 - (Player_width/2)
 			Player.y = 250 - (Player_height/2)
+	return row, col
 
 def Walk_left_animation():
 	pass
@@ -325,10 +355,14 @@ box2 = Object(735, 318, 20, 50)
 objects = []
 objects.append(box.getObject())
 objects.append(box2.getObject())
-
-
-
-
+'''
+items = []
+items.append(SWORD)
+items.append(BOMB)
+item_counter= 0
+image_x = 845
+image_y = 5
+'''
 def main():
 	#Player
 	player = pygame.Rect(450 - (Player_width/2), 250 - (Player_height/2), Player_width, Player_height)
@@ -341,7 +375,7 @@ def main():
 	#mapGen
 	map = mapGen(17) #consider moving this up and making it a global variable?
 	row, col = map.generate()
-
+	
 	clock = pygame.time.Clock()
 	run = True
 	while run:
@@ -374,9 +408,20 @@ def main():
 			moving = True
 			right = True
 			left = False
+		'''elif not keys_pressed[pygame.K_d] and not keys_pressed[pygame.K_a] and not keys_pressed[pygame.K_LEFT] and not keys_pressed[pygame.K_RIGHT]:
+			image = PLAYER
+			moving = False
+			right = False
+			left = False'''
+
+		if keys_pressed[pygame.K_TAB]:
+			item_counter+= 1
+			if item_counter>= len(items):
+				item_counter= 0
+			item = items[item_counter]
 
 
-		if moving:
+		if moving == True:
 			value  += 1
 			if value >= len(SPRINT):
 				value = 0
@@ -384,14 +429,16 @@ def main():
 				image = SPRINT[value]
 			elif left:
 				image = SPRINT_LEFT[value]
-		else:
+		elif not moving:
 			value += 1
 			if value >= len(IDLE):
 				value = 0
 			image = IDLE[value]
 
-		Door_collision(image, player, map, row, col) #check door collision
-		Draw_window(image, player, map, row, col)
+		row, col = Door_collision(image, player, map, row, col) #check door collision
+		BACKGROUND = makeBackground(map, row, col)
+		Draw_window(BACKGROUND, image, player, map, row, col)
+		#Draw_item(item, image_x, image_y)
 
 	pygame.quit()
 
