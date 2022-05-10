@@ -102,20 +102,109 @@ class Object:
 	def getObject(self):
 		return pygame.Rect(self.x, self.y, self.width, self.height)
 
-
-width, height = 900, 500
-WIN = pygame.display.set_mode((width, height))
-FPS = 60
-Player_width, Player_height = 50, 40
-Vel = 5
-
-
 def makeBackground(map, row, col):
 	mapName = map.getRoom(row, col)[0]
 	MAP_IMAGE = pygame.image.load(os.path.join('assets', mapName)).convert_alpha()
 	MAP = pygame.transform.scale(MAP_IMAGE, (width, height))
 	return MAP
 
+def Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col): 
+    fade = pygame.Surface((width, height))
+    fade.fill(BLACK)
+    for alpha in range(0, 255):
+        fade.set_alpha(alpha)
+        BACKGROUND = makeBackground(map, row, col)
+        Draw_window(BACKGROUND, CURRENT_PLAYER, Player, map, row, col)
+        WIN.blit(fade, (0,0))
+        pygame.display.update()
+
+def Draw_window(BACKGROUND, CURRENT_PLAYER, Player_object, map, row, col):
+	WIN.blit(BACKGROUND, (0,0))
+	Draw_doors(map, row, col)
+	WIN.blit(CURRENT_PLAYER, (Player_object.x, Player_object.y))
+	pygame.display.update()
+
+def Draw_doors(map, row, col):
+	if map.getRoom(row, col)[2] == True:
+		WIN.blit(TOPDOOR, (0,0))
+	if map.getRoom(row, col)[3] == True:
+		WIN.blit(BOTTOMDOOR, (0,0))
+	if map.getRoom(row, col)[4] == True:
+		WIN.blit(LEFTDOOR, (0,0))
+	if map.getRoom(row, col)[5] == True:
+		WIN.blit(RightDOOR, (0,0))
+
+def Player_walk_movement(keys_pressed, player):
+	if (keys_pressed[pygame.K_a] or keys_pressed[pygame.K_LEFT]) and player.x - Vel > 68: #left
+		player.x -= Vel
+	if (keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]) and player.x - Vel < width - 130: #right
+		player.x += Vel
+	if (keys_pressed[pygame.K_w] or keys_pressed[pygame.K_UP]) and player.y - Vel > 50: #up
+		player.y -= Vel
+	if (keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]) and player.y - Vel < height - 105: #down
+		player.y += Vel
+
+def Determine_collsion_side(player, Object):
+    if player.midtop[1] > Object.midtop[1]:
+        return "top"
+    elif player.midleft[0] > Object.midleft[0]:
+        return "left"
+    elif player.midright[0] < Object.midright[0]:
+        return "right"
+    else:
+        return "bottom"
+    return
+
+def Collision_movement(player, Objects, direction):
+	if direction == "top":
+		player.top = Objects.bottom
+	elif direction == "left":
+		player.left = Objects.right
+	elif direction == "right":
+		player.right = Objects.left
+	elif direction == "bottom":
+		player.bottom = Objects.top
+
+def Door_collision(CURRENT_PLAYER, Player, map, row, col):
+	if Player.y <= 60 and (Player.x > 415 and Player.x < 460):
+		if map.getRoom(row, col)[2] == True:
+			row -= 1
+			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
+			Player.x = 450 - (Player_width/2)
+			Player.y = 250 - (Player_height/2)
+	elif Player.y >= 400 and (Player.x > 415 and Player.x < 460):
+		if map.getRoom(row, col)[3] == True:
+			row += 1
+			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
+			Player.x = 450 - (Player_width/2)
+			Player.y = 250 - (Player_height/2)
+	elif Player.x <= 70 and (Player.y > 195 and Player.y < 235):
+		if map.getRoom(row, col)[4] == True:
+			col -= 1
+			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
+			Player.x = 450 - (Player_width/2)
+			Player.y = 250 - (Player_height/2)
+	elif Player.x >= 775 and (Player.y > 195 and Player.y < 235):
+		if map.getRoom(row, col)[5] == True:
+			col += 1
+			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
+			Player.x = 450 - (Player_width/2)
+			Player.y = 250 - (Player_height/2)
+	return row, col
+
+def Walk_left_animation():
+	pass
+
+def Walk_right_animation():
+	pass
+
+
+
+width, height = 900, 500
+WIN = pygame.display.set_mode((width, height))
+FPS = 60
+Player_width, Player_height = 50, 40
+Vel = 5
 
 #BACKGROUND_IMAGE = pygame.image.load(os.path.join('assets', 'maptest.png')).convert_alpha()
 #BACKGROUND = pygame.transform.scale(BACKGROUND_IMAGE, (width, height))
@@ -133,10 +222,6 @@ PLAYER_IMAGE_COPY = pygame.transform.scale(PLAYER_IMAGE.copy(), (Player_width, P
 PLAYER_IMAGE_FLIP = pygame.transform.flip(PLAYER_IMAGE_COPY, True, False)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-
-
-
-
 
 
 '''
@@ -230,12 +315,6 @@ IDLE = [IDLE1, IDLE1,
 
 
 
-
-
-
-
-
-
 #top right attack display
 
 item_width, item_height = 50, 50
@@ -244,110 +323,11 @@ BOMB_IMAGE = pygame.image.load(os.path.join('assets', 'bomb.png')).convert_alpha
 BOMB = pygame.transform.scale(BOMB_IMAGE, (item_width, item_height))
 SWORD_IMAGE = puygame.image.load(os.path.join('assets', 'sword.png')).convert_alpha()
 SWORD = pygame.transform.scale(SWORD_IMAGE, (item_width, item_height))
-'''
+
 
 def Draw_item(item, x, y):
 	WIN.blit(image, (x, y))
-
-
-
-
-
-
-
-
-#drawing
-def Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col): 
-    fade = pygame.Surface((width, height))
-    fade.fill(BLACK)
-    for alpha in range(0, 255):
-        fade.set_alpha(alpha)
-        BACKGROUND = makeBackground(map, row, col)
-        Draw_window(BACKGROUND, CURRENT_PLAYER, Player, map, row, col)
-        WIN.blit(fade, (0,0))
-        pygame.display.update()
-
-def Draw_window(BACKGROUND, CURRENT_PLAYER, Player_object, map, row, col):
-	WIN.blit(BACKGROUND, (0,0))
-	Draw_doors(map, row, col)
-	WIN.blit(CURRENT_PLAYER, (Player_object.x, Player_object.y))
-	pygame.display.update()
-
-def Draw_doors(map, row, col):
-	if map.getRoom(row, col)[2] == True:
-		WIN.blit(TOPDOOR, (0,0))
-	if map.getRoom(row, col)[3] == True:
-		WIN.blit(BOTTOMDOOR, (0,0))
-	if map.getRoom(row, col)[4] == True:
-		WIN.blit(LEFTDOOR, (0,0))
-	if map.getRoom(row, col)[5] == True:
-		WIN.blit(RightDOOR, (0,0))
-
-def Player_walk_movement(keys_pressed, player):
-	if (keys_pressed[pygame.K_a] or keys_pressed[pygame.K_LEFT]) and player.x - Vel > 68: #left
-		player.x -= Vel
-	if (keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]) and player.x - Vel < width - 130: #right
-		player.x += Vel
-	if (keys_pressed[pygame.K_w] or keys_pressed[pygame.K_UP]) and player.y - Vel > 50: #up
-		player.y -= Vel
-	if (keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]) and player.y - Vel < height - 105: #down
-		player.y += Vel
-
-def Determine_collsion_side(player, Object):
-    if player.midtop[1] > Object.midtop[1]:
-        return "top"
-    elif player.midleft[0] > Object.midleft[0]:
-        return "left"
-    elif player.midright[0] < Object.midright[0]:
-        return "right"
-    else:
-        return "bottom"
-    return
-
-def Collision_movement(player, Objects, direction):
-	if direction == "top":
-		player.top = Objects.bottom
-	elif direction == "left":
-		player.left = Objects.right
-	elif direction == "right":
-		player.right = Objects.left
-	elif direction == "bottom":
-		player.bottom = Objects.top
-
-def Door_collision(CURRENT_PLAYER, Player, map, row, col):
-	if Player.y <= 60 and (Player.x > 415 and Player.x < 460):
-		if map.getRoom(row, col)[2] == True:
-			row -= 1
-			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
-			Player.x = 450 - (Player_width/2)
-			Player.y = 250 - (Player_height/2)
-	elif Player.y >= 400 and (Player.x > 415 and Player.x < 460):
-		if map.getRoom(row, col)[3] == True:
-			row += 1
-			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
-			Player.x = 450 - (Player_width/2)
-			Player.y = 250 - (Player_height/2)
-	elif Player.x <= 70 and (Player.y > 195 and Player.y < 235):
-		if map.getRoom(row, col)[4] == True:
-			col -= 1
-			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
-			Player.x = 450 - (Player_width/2)
-			Player.y = 250 - (Player_height/2)
-	elif Player.x >= 775 and (Player.y > 195 and Player.y < 235):
-		if map.getRoom(row, col)[5] == True:
-			col += 1
-			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
-			Player.x = 450 - (Player_width/2)
-			Player.y = 250 - (Player_height/2)
-	return row, col
-
-def Walk_left_animation():
-	pass
-
-def Walk_right_animation():
-	pass
-
-#player?
+'''
 
 #object creation:
 box = Object(695, 338, 20, 30)
@@ -413,12 +393,12 @@ def main():
 			moving = False
 			right = False
 			left = False'''
-
+		'''
 		if keys_pressed[pygame.K_TAB]:
 			item_counter+= 1
 			if item_counter>= len(items):
 				item_counter= 0
-			item = items[item_counter]
+			item = items[item_counter] '''
 
 
 		if moving == True:
