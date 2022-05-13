@@ -1,4 +1,5 @@
 import pygame
+from pytmx.util_pygame import load_pygame
 import os
 import random
 
@@ -93,16 +94,17 @@ class mapGen:
 
 class Object:
 
-	def __init__(self, x, y, width, height):
+	def __init__(self, x, y, width, height, name):
 		self.x = x
 		self.y = y
 		self.width = width
 		self.height = height
+		self.name = name
 
 	def getObject(self):
 		return pygame.Rect(self.x, self.y, self.width, self.height)
 
-def makeBackground(map, row, col):
+def makeBackground(map, row, col, width, height):
 	mapName = map.getRoom(row, col)[0]
 	MAP_IMAGE = pygame.image.load(os.path.join('assets', mapName)).convert_alpha()
 	MAP = pygame.transform.scale(MAP_IMAGE, (width, height))
@@ -113,10 +115,9 @@ def Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col):
     fade.fill(BLACK)
     for alpha in range(0, 255):
         fade.set_alpha(alpha)
-        BACKGROUND = makeBackground(map, row, col)
-        Draw_window(BACKGROUND, CURRENT_PLAYER, Player, map, row, col)
         WIN.blit(fade, (0,0))
         pygame.display.update()
+    BACKGROUND = makeBackground(map, row, col, width, height)
 
 def Draw_window(BACKGROUND, CURRENT_PLAYER, Player_object, map, row, col):
 	WIN.blit(BACKGROUND, (0,0))
@@ -165,7 +166,7 @@ def Collision_movement(player, Objects, direction):
 	elif direction == "bottom":
 		player.bottom = Objects.top
 
-def Door_collision(CURRENT_PLAYER, Player, map, row, col):
+def Door_collision(CURRENT_PLAYER, Player, map, row, col, width, height):
 	if Player.y <= 60 and (Player.x > 415 and Player.x < 460):
 		if map.getRoom(row, col)[2] == True:
 			row -= 1
@@ -192,19 +193,67 @@ def Door_collision(CURRENT_PLAYER, Player, map, row, col):
 			Player.y = 250 - (Player_height/2)
 	return row, col
 
-def Walk_left_animation():
-	pass
+def Player_dash_movement(direction, player):
+	if "left" in direction and player.x - Dash_vel > 68: #left
+		player.x -= Dash_vel
+	if "right" in direction and player.x - Dash_vel < width - 130: #right
+		player.x += Dash_vel
+	if "up" in direction and player.y - Dash_vel > 50: #up
+		player.y -= Dash_vel
+	if "down" in direction and player.y - Dash_vel < height - 105: #down
+		player.y += Dash_vel
 
-def Walk_right_animation():
-	pass
+def Player_dash_direction(keys_pressed, player):
+	Dash_direction = []
+	if keys_pressed[pygame.K_a] or keys_pressed[pygame.K_LEFT]:
+		Dash_direction.append("left")
+	if keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]:
+		Dash_direction.append("right")
+	if keys_pressed[pygame.K_w] or keys_pressed[pygame.K_UP]:
+		Dash_direction.append("up")
+	if keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]:
+		Dash_direction.append("down")
+	return Dash_direction
 
+def Get_map_names(map):
+	map_names = []
+	row = []
+	for i in range(10):
+		for j in range(10):
+			if map.getRoom(i, j) == None:
+				row.append(None)
+			else:
+				row.append(map.getRoom(i, j)[0])
+		map_names.append(row)
+		row = []
+	return map_names
 
+def Get_tmx(map_names, row, col):
+	name = map_names[row][col]
+	name = name.split('.')[0]
+	name = name + ".tmx"
+	print(name)
+	tmx_data = load_pygame(os.path.join('assets', name))
+	return tmx_data
 
-width, height = 900, 500
-WIN = pygame.display.set_mode((width, height))
+def Get_map_objects(tmx):
+	objects = []
+	for obj in tmx.get_layer_by_name('Objects'):
+		box = Object(obj.x * 3, obj.y * 3, obj.width * 3, obj.height * 3)
+		objects.append(box.getObject())
+	return objects
+
+#-------------------------------------Variables-----------------------------------
+width, height = 960, 768
+WIN = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 FPS = 60
 Player_width, Player_height = 50, 40
 Vel = 5
+Dash_vel = 30
+walls = ["Top", "Left", "Right", "Bottom"]
+
+
+
 
 #BACKGROUND_IMAGE = pygame.image.load(os.path.join('assets', 'maptest.png')).convert_alpha()
 #BACKGROUND = pygame.transform.scale(BACKGROUND_IMAGE, (width, height))
@@ -330,11 +379,11 @@ def Draw_item(item, x, y):
 '''
 
 #object creation:
-box = Object(695, 338, 20, 30)
+'''box = Object(695, 338, 20, 30)
 box2 = Object(735, 318, 20, 50)
 objects = []
 objects.append(box.getObject())
-objects.append(box2.getObject())
+objects.append(box2.getObject())'''
 '''
 items = []
 items.append(SWORD)
@@ -343,7 +392,20 @@ item_counter= 0
 image_x = 845
 image_y = 5
 '''
+
+
+
+
 def main():
+	#mapGen
+	map = mapGen(17) #consider moving this up and making it a global variable?
+	row, col = map.generate()
+	map_names = Get_map_names(map)
+	tmx = Get_tmx(map_names, row, col)
+	objects = Get_map_objects(tmx)
+	print(objects)
+
+
 	#Player
 	player = pygame.Rect(450 - (Player_width/2), 250 - (Player_height/2), Player_width, Player_height)
 	value = 0
@@ -351,10 +413,6 @@ def main():
 	moving = False
 	left = False
 	right = True
-
-	#mapGen
-	map = mapGen(17) #consider moving this up and making it a global variable?
-	row, col = map.generate()
 	
 	clock = pygame.time.Clock()
 	run = True
@@ -368,9 +426,28 @@ def main():
 					moving = False
 					value = 0
 
+		#handle resizing
+		resize_width, resize_height = WIN.get_size()
+		ScaleX = resize_width // width
+		ScaleY = resize_height // height
+		scale = 1.25
+		Game_width = width
+		Game_height = height
+		if resize_width >= Game_width*scale and resize_height >= Game_height*scale:
+			Game_width = width * ScaleX
+			Game_height = height * ScaleY
+		#print(resize_width, resize_height, ScaleX, ScaleY, Game_width, Game_height)
+		#print(Game_width, Game_height)	
+
+		BACKGROUND = makeBackground(map, row, col, Game_width, Game_height)
+
+
+
+
 		for i in objects:
 			collide = pygame.Rect.colliderect(player, i)
 			if collide:
+				print(i.name)
 				direction = Determine_collsion_side(player, i)
 				Collision_movement(player, i, direction)
 
@@ -378,6 +455,16 @@ def main():
 		if keys_pressed[pygame.K_ESCAPE]:
 			run = False
 		Player_walk_movement(keys_pressed, player)
+
+		if keys_pressed[pygame.K_SPACE]:
+			Dash_direction = Player_dash_direction(keys_pressed, player)
+			Player_dash_movement(keys_pressed, player)
+
+
+
+
+
+
 		if keys_pressed[pygame.K_a] or keys_pressed[pygame.K_LEFT]: #need to flip model?
 			image = PLAYER_IMAGE_FLIP
 			moving = True
@@ -415,8 +502,8 @@ def main():
 				value = 0
 			image = IDLE[value]
 
-		row, col = Door_collision(image, player, map, row, col) #check door collision
-		BACKGROUND = makeBackground(map, row, col)
+		row, col = Door_collision(image, player, map, row, col, Game_width, Game_height) #check door collision
+		BACKGROUND = makeBackground(map, row, col, Game_width, Game_height)
 		Draw_window(BACKGROUND, image, player, map, row, col)
 		#Draw_item(item, image_x, image_y)
 
