@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.4" orientation="orthogonal" renderorder="right-down" width="20" height="16" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="1">
- <tileset firstgid="1" source="../../Game/desktop/build/resources/main/maps/tiles.tsx"/>
+<map version="1.8" tiledversion="1.8.4" orientation="orthogonal" renderorder="right-down" width="20" height="16" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="14">
+ <tileset firstgid="1" source="tiles.tsx"/>
  <tileset firstgid="257" source="tiles2.tsx"/>
  <layer id="1" name="Tile Layer 1" width="20" height="16">
   <data encoding="csv">
@@ -62,4 +62,24 @@
 3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490,3221225490
 </data>
  </layer>
+ <objectgroup id="5" name="Objects">
+  <object id="4" name="large" x="256.25" y="160.25">
+   <polyline points="0,0 15.75,-0.25 15.75,31.75 -0.25,31.75 -0.25,-0.25"/>
+  </object>
+  <object id="8" name="small" x="240" y="192">
+   <polygon points="0,0 16,0 16,-21.25 0,-21"/>
+  </object>
+  <object id="10" name="Top" x="0" y="0">
+   <polyline points="0,0 320,0 320,32 0,32 0,0"/>
+  </object>
+  <object id="11" name="Left" x="0" y="32">
+   <polygon points="0,0 32,0 32,192 0,192"/>
+  </object>
+  <object id="12" name="Right" x="288" y="32">
+   <polyline points="0,0 32,0 32,192 0,192 0,0"/>
+  </object>
+  <object id="13" name="Bottom" x="0" y="224">
+   <polyline points="0,0 320,0 320,32 0,32 0,0"/>
+  </object>
+ </objectgroup>
 </map>
