@@ -104,6 +104,9 @@ class Object:
 	def getObject(self):
 		return pygame.Rect(self.x, self.y, self.width, self.height)
 
+	def getName(self):
+		return self.name
+
 def makeBackground(map, row, col, width, height):
 	mapName = map.getRoom(row, col)[0]
 	MAP_IMAGE = pygame.image.load(os.path.join('assets', mapName)).convert_alpha()
@@ -155,6 +158,16 @@ def Determine_collsion_side(player, Object):
     else:
         return "bottom"
     return
+
+def Wall_collision(player, object):
+	if object[0] == "Top":
+		player.y = object[1].bottom
+	if object[0] == "Left":
+		player.x = object[1].right
+	if object[0] == "Right":
+		player.x = object[1].left
+	else:
+		player.y = object[1].top
 
 def Collision_movement(player, Objects, direction):
 	if direction == "top":
@@ -237,10 +250,10 @@ def Get_tmx(map_names, row, col):
 	return tmx_data
 
 def Get_map_objects(tmx):
-	objects = []
+	objects = {}
 	for obj in tmx.get_layer_by_name('Objects'):
-		box = Object(obj.x * 3, obj.y * 3, obj.width * 3, obj.height * 3)
-		objects.append(box.getObject())
+		box = Object(obj.x * 3, obj.y * 3, obj.width * 3, obj.height * 3, obj.name)
+		objects[box.getName()] = box.getObject()
 	return objects
 
 #-------------------------------------Variables-----------------------------------
@@ -444,10 +457,11 @@ def main():
 
 
 
-		for i in objects:
-			collide = pygame.Rect.colliderect(player, i)
+		for i in objects.items():
+			collide = pygame.Rect.colliderect(player, i[1])
 			if collide:
-				print(i.name)
+				if i[0] in walls:
+
 				direction = Determine_collsion_side(player, i)
 				Collision_movement(player, i, direction)
 
