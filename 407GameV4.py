@@ -113,10 +113,11 @@ def Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col):
     fade.fill(BLACK)
     for alpha in range(0, 255):
         fade.set_alpha(alpha)
-        BACKGROUND = makeBackground(map, row, col)
-        Draw_window(BACKGROUND, CURRENT_PLAYER, Player, map, row, col)
+        # BACKGROUND = makeBackground(map, row, col)
+        # Draw_window(BACKGROUND, CURRENT_PLAYER, Player, map, row, col)
         WIN.blit(fade, (0,0))
-        pygame.display.update()
+        pygame.display.update()	
+    BACKGROUND = makeBackground(map, row, col)
 
 def Draw_window(BACKGROUND, CURRENT_PLAYER, Player_object, map, row, col):
 	WIN.blit(BACKGROUND, (0,0))
@@ -144,6 +145,7 @@ def Player_walk_movement(keys_pressed, player):
 	if (keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]) and player.y - Vel < height - 105: #down
 		player.y += Vel
 
+
 def Determine_collsion_side(player, Object):
     if player.midtop[1] > Object.midtop[1]:
         return "top"
@@ -166,42 +168,38 @@ def Collision_movement(player, Objects, direction):
 		player.bottom = Objects.top
 
 def Door_collision(CURRENT_PLAYER, Player, map, row, col):
-	if Player.y <= 60 and (Player.x > 415 and Player.x < 460):
+	# Top door
+	if Player.y <= 60 and (Player.x > 395 and Player.x < 460):
 		if map.getRoom(row, col)[2] == True:
 			row -= 1
 			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
-			Player.x = 450 - (Player_width/2)
-			Player.y = 250 - (Player_height/2)
-	elif Player.y >= 400 and (Player.x > 415 and Player.x < 460):
+			Player.x = 420
+			Player.y = 420 - Player_height
+	# Bottom Door
+	elif Player.y >= 400 and (Player.x > 395 and Player.x < 460):
 		if map.getRoom(row, col)[3] == True:
 			row += 1
 			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
-			Player.x = 450 - (Player_width/2)
-			Player.y = 250 - (Player_height/2)
-	elif Player.x <= 70 and (Player.y > 195 and Player.y < 235):
+			Player.x = 420
+			Player.y = 35 + Player_height
+	# Left Door
+	elif Player.x <= 71 and (Player.y > 195 and Player.y < 235):
 		if map.getRoom(row, col)[4] == True:
 			col -= 1
 			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
-			Player.x = 450 - (Player_width/2)
-			Player.y = 250 - (Player_height/2)
+			Player.x = 774 - Player_width
+			Player.y = 215
+	# Right door
 	elif Player.x >= 775 and (Player.y > 195 and Player.y < 235):
 		if map.getRoom(row, col)[5] == True:
 			col += 1
 			Fade_to_black(width, height, CURRENT_PLAYER, Player, map, row, col)
-			Player.x = 450 - (Player_width/2)
-			Player.y = 250 - (Player_height/2)
+			Player.x = 71 + Player_width
+			Player.y = 215
 	return row, col
 
-def Walk_left_animation():
-	pass
-
-def Walk_right_animation():
-	pass
-
-
-
 width, height = 900, 500
-WIN = pygame.display.set_mode((width, height))
+WIN = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 FPS = 60
 Player_width, Player_height = 50, 40
 Vel = 5
