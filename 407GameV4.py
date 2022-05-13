@@ -461,7 +461,7 @@ def main():
 			collide = pygame.Rect.colliderect(player, i[1])
 			if collide:
 				if i[0] in walls:
-
+					Wall_collision(player, i)
 				direction = Determine_collsion_side(player, i)
 				Collision_movement(player, i, direction)
 
